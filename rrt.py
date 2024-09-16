@@ -27,6 +27,6 @@ class RRT():
         self.tree.insert_edges(q_new, q_near)
 
     def run_rrt(self):
-        for i in range(self.K):
+        for _ in range(self.K):
             self.iterate_rrt()
         return self.tree

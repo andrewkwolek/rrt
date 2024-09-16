@@ -13,14 +13,18 @@ def main():
     rrt = RRT(q_init, 500, 1, 100)
     rrt.run_rrt()
 
-    x = []
-    y = []
-    for v in rrt.tree.get_vertices():
-        x.append(v.vertex[0])
-        y.append(v.vertex[1])
+    # x = []
+    # y = []
+    # edges = []
+    # for v in rrt.tree.get_vertices():
+    #     x.append(v.vertex[0])
+    #     y.append(v.vertex[1])
+    #     for e in v.edges:
+    #         None
+
 
     plt.axis((0, 100, 0, 100))
-    plt.scatter(x, y, s=2, color="blue")
+    # plt.scatter(x, y, s=2, color="blue")
     plt.grid()
     plt.show()
     

@@ -24,7 +24,8 @@ def main():
     figure, axes = plt.subplots()
     obstacles = generate_obstacles(axes)
     q_init = Node((50, 50))
-    rrt = RRT(q_init, 500, 1, 100)
+    q_goal = Node((70, 20))
+    rrt = RRT(q_init, q_goal, 500, 1, 100)
     rrt.run_rrt(obstacles)
 
     plt.axis((0, 100, 0, 100))

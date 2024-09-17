@@ -1,30 +1,33 @@
 import matplotlib.pyplot as plt
+import matplotlib.patches as pch
 import numpy as np
 
 from tree import Tree, Node
 from rrt import RRT
 from matplotlib.collections import LineCollection
 
+def generate_obstacles(axes):
+    obstacles = []
+    c = pch.Circle((25,25), 3, color="black")
+    obstacles.append(c)
+    plt.gca().add_patch(c)
+    c = pch.Circle((60,30), 7, color="black")
+    obstacles.append(c)
+    plt.gca().add_patch(c)
+    c = pch.Circle((20,75), 5, color="black")
+    obstacles.append(c)
+    plt.gca().add_patch(c)
+    return obstacles
+
 def main():
     np.random.seed(42)
-    fig, ax = plt.subplots()
-    plt.axis((0, 100, 0, 100))
+    figure, axes = plt.subplots()
+    obstacles = generate_obstacles(axes)
     q_init = Node((50, 50))
     rrt = RRT(q_init, 500, 1, 100)
-    rrt.run_rrt()
-
-    # x = []
-    # y = []
-    # edges = []
-    # for v in rrt.tree.get_vertices():
-    #     x.append(v.vertex[0])
-    #     y.append(v.vertex[1])
-    #     for e in v.edges:
-    #         None
-
+    rrt.run_rrt(obstacles)
 
     plt.axis((0, 100, 0, 100))
-    # plt.scatter(x, y, s=2, color="blue")
     plt.grid()
     plt.show()
     

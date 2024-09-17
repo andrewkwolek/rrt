@@ -15,7 +15,6 @@ class Obstacles:
         c = pch.Circle(coords, rad, color="black", zorder=2)
         self.obstacles.append(c)
         axes.add_artist(c)
-        # plt.gca().add_patch(c)
     
     def create_set(self, axes):
         for _ in range(self.num_obs):

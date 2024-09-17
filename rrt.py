@@ -50,18 +50,26 @@ class RRT():
     ################### END_CITATION [1] #################
 
     def iterate_rrt(self, obstacles):
+        # Generate random vertex q_rand
         q_rand = Node((random.randrange(self.D), random.randrange(self.D)))
         min_dist = 99999
         q_near = None
+
+        # Find the node in the tree that is closest to q_rand
         for v in self.tree.get_vertices():
             dist = np.linalg.norm(np.array(q_rand.vertex) - np.array(v.vertex))
             if dist < min_dist:
                 q_near = v
                 min_dist = dist
         
+        # Find the unit vector from q_near to q_rand and create a new node q_new that is one delta
+        # from q_near in the direction of q_rand
         vec = (np.array(q_rand.vertex) - np.array(q_near.vertex)) / min_dist * self.delta
         q_new = Node((q_near.vertex[0] + vec[0], q_near.vertex[1] + vec[1]))
 
+        # Iterate through all of the generated obstacles and determine if q_new is in collision
+        # with an obstacle. If it is, find the closest point along the path that does not 
+        # collide with the obstacle and set it as q_new.
         collides = False
         for o in obstacles.get_obs():
             tf = o.get_data_transform().transform(q_new.get_vertex())
@@ -77,15 +85,18 @@ class RRT():
                         break
                 break
         
+        # If we have found a q_new that does not collide with an obstacle, add it to the tree
         if collides == False:
             self.tree.insert_vertex(q_new)
             self.tree.insert_edges(q_new, q_near)
 
+        # Check if there is an unobstructed path from q_new to q_goal. If not, return false to move to next iteration
         for o in obstacles.get_obs():
             shortest_dist = self.minDist(self.q_goal.get_vertex(), q_new.get_vertex(), o.center)
             if shortest_dist < o.get_radius():
                 return False
-            
+        
+        # Return true if there is an unobstructed path from q_new to q_goal and add q_goal to the tree
         self.tree.insert_vertex(self.q_goal)
         self.tree.insert_edges(self.q_goal, q_new)
         return True
@@ -95,10 +106,6 @@ class RRT():
         path = []
         while q.parent != None:
             path.append(q.get_vertex())
-            # plt.scatter(q.vertex[0], q.vertex[1], s=2, color="red")
-            # line = pch.ConnectionPatch(q.get_vertex(), q.parent.get_vertex(), coordsA="path", color="red", linewidth=0.75, zorder=10)
-            # plt.gca().add_patch(line)
-            # plt.plot([q.vertex[0], q.vertex[0]], [q.parent.vertex[1], q.parent.vertex[1]], linewidth=0.75, color="red", zorder=50)
             q.set_path()
             q = q.parent
         return path

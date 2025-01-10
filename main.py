@@ -8,6 +8,7 @@ from tree import Tree, Node
 from rrt import RRT
 from matplotlib.collections import LineCollection
 
+
 def main():
     # Generate random obstacles, q_init, and q_goal
     np.random.seed(42)
@@ -25,7 +26,7 @@ def main():
         q_goal = Node((random.randrange(100), random.randrange(100)))
 
     # Create the RRT and run the finder
-    rrt = RRT(q_init, q_goal, 1000, 1, 100)
+    rrt = RRT(q_init, q_goal, 1000, 1, 100, ax)
     rrt.run_rrt(obstacles)
 
     # Trace the path from the goal back to the start
@@ -37,7 +38,7 @@ def main():
     ax.axis((0, 100, 0, 100))
     ax.grid()
     plt.show()
-    
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

@@ -2,12 +2,12 @@ from tree import Tree, Node
 import numpy as np
 import random
 from collections import deque
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as pch
 
+
 class RRT():
-    def __init__(self, q_init, q_goal, K, d, D):
+    def __init__(self, q_init, q_goal, K, d, D, axes):
         self.q_init = q_init
         self.q_goal = q_goal
         self.K = K
@@ -15,6 +15,7 @@ class RRT():
         self.D = D
 
         self.tree = Tree(self.q_init)
+        self.ax = axes
 
     ################### START_CITATION [1] #################
     def minDist(self, a, b, p):
@@ -49,7 +50,7 @@ class RRT():
         return dist
     ################### END_CITATION [1] #################
 
-    def iterate_rrt(self, obstacles):
+    def iterate_rrt(self, obstacles, plot_steps=False):
         # Generate random vertex q_rand
         q_rand = Node((random.randrange(self.D), random.randrange(self.D)))
         min_dist = 99999
@@ -61,14 +62,15 @@ class RRT():
             if dist < min_dist:
                 q_near = v
                 min_dist = dist
-        
+
         # Find the unit vector from q_near to q_rand and create a new node q_new that is one delta
         # from q_near in the direction of q_rand
-        vec = (np.array(q_rand.vertex) - np.array(q_near.vertex)) / min_dist * self.delta
+        vec = (np.array(q_rand.vertex) - np.array(q_near.vertex)) / \
+            min_dist * self.delta
         q_new = Node((q_near.vertex[0] + vec[0], q_near.vertex[1] + vec[1]))
 
         # Iterate through all of the generated obstacles and determine if q_new is in collision
-        # with an obstacle. If it is, find the closest point along the path that does not 
+        # with an obstacle. If it is, find the closest point along the path that does not
         # collide with the obstacle and set it as q_new.
         collides = False
         for o in obstacles.get_obs():
@@ -80,22 +82,28 @@ class RRT():
                     new_point = q_near.get_vertex() + point
                     tf = o.get_data_transform().transform(new_point)
                     if not o.contains_point(tf):
-                        q_new = Node((q_near.vertex[0] + point[0], q_near.vertex[1] + point[1]))
+                        q_new = Node(
+                            (q_near.vertex[0] + point[0], q_near.vertex[1] + point[1]))
                         collides = False
                         break
                 break
-        
+
         # If we have found a q_new that does not collide with an obstacle, add it to the tree
         if collides == False:
             self.tree.insert_vertex(q_new)
             self.tree.insert_edges(q_new, q_near)
 
+            # Plot each time a new point is added if plot_steps is True
+            if plot_steps:
+                self.plot_step(obstacles)
+
         # Check if there is an unobstructed path from q_new to q_goal. If not, return false to move to next iteration
         for o in obstacles.get_obs():
-            shortest_dist = self.minDist(self.q_goal.get_vertex(), q_new.get_vertex(), o.center)
+            shortest_dist = self.minDist(
+                self.q_goal.get_vertex(), q_new.get_vertex(), o.center)
             if shortest_dist < o.get_radius():
                 return False
-        
+
         # Return true if there is an unobstructed path from q_new to q_goal and add q_goal to the tree
         self.tree.insert_vertex(self.q_goal)
         self.tree.insert_edges(self.q_goal, q_new)
@@ -109,27 +117,50 @@ class RRT():
             q.set_path()
             q = q.parent
         return path
-            
+
+    def plot_step(self, obstacles):
+        # Update plot every time a new point is added
+        self.ax.clear()
+        self.ax.set_xlim(0, self.D)
+        self.ax.set_ylim(0, self.D)
+        self.ax.grid()
+
+        # Re-plot obstacles, start, and goal
+        # Need to recreate the obstacles in every plot
+        obstacles.plot_obs(self.ax)
+
+        # Plot the tree
+        self.plot(self.ax)
+        plt.draw()
+        plt.pause(0.01)  # Small pause for animation effect
+
     def plot(self, axes):
         q = deque()
         q.append(self.q_init)
-        axes.scatter(self.q_init.get_vertex()[0], self.q_init.get_vertex()[1], s=2, color="red")
+        axes.scatter(self.q_init.get_vertex()[
+                     0], self.q_init.get_vertex()[1], s=2, color="red")
+        axes.scatter(self.q_goal.get_vertex()[
+                     0], self.q_goal.get_vertex()[1], s=2, color="green")
         while q:
             node = q.popleft()
             for child in node.edges:
                 if child.is_path:
-                    axes.scatter(child.vertex[0], child.vertex[1], s=2, color="red")
-                    axes.plot([node.vertex[0], child.vertex[0]], [node.vertex[1], child.vertex[1]], linewidth="0.5", color="red")
+                    axes.scatter(
+                        child.vertex[0], child.vertex[1], s=2, color="red")
+                    axes.plot([node.vertex[0], child.vertex[0]], [
+                              node.vertex[1], child.vertex[1]], linewidth="0.5", color="red")
                 else:
-                    axes.scatter(child.vertex[0], child.vertex[1], s=2, color="blue")
-                    axes.plot([node.vertex[0], child.vertex[0]], [node.vertex[1], child.vertex[1]], linewidth="0.5", color="blue")
+                    axes.scatter(
+                        child.vertex[0], child.vertex[1], s=2, color="blue")
+                    axes.plot([node.vertex[0], child.vertex[0]], [
+                              node.vertex[1], child.vertex[1]], linewidth="0.5", color="blue")
                 q.append(child)
-    
 
     def run_rrt(self, obstacles):
         for _ in range(self.K):
-            if self.iterate_rrt(obstacles):
+            if self.iterate_rrt(obstacles, plot_steps=True):
                 return self.tree
         return self.tree
 
-#[1] "Minimum distance from a point to the line segment using Vectors", GeeksForGeeks, 2024, https://www.geeksforgeeks.org/minimum-distance-from-a-point-to-the-line-segment-using-vectors/
+
+# [1] "Minimum distance from a point to the line segment using Vectors", GeeksForGeeks, 2024, https://www.geeksforgeeks.org/minimum-distance-from-a-point-to-the-line-segment-using-vectors/

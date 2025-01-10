@@ -3,8 +3,10 @@ import matplotlib.patches as pch
 import numpy as np
 import random
 
+
 class Obstacles:
     np.random.seed(42)
+
     def __init__(self, D):
         self.obstacles = []
         self.D = D
@@ -14,8 +16,11 @@ class Obstacles:
         coords = (random.randrange(self.D), random.randrange(self.D))
         c = pch.Circle(coords, rad, color="black", zorder=2)
         self.obstacles.append(c)
-        axes.add_artist(c)
-    
+
+    def plot_obs(self, axes):
+        for c in self.obstacles:
+            axes.add_artist(c)
+
     def create_set(self, axes):
         for _ in range(self.num_obs):
             rad = random.randrange(15)

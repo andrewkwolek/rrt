@@ -8,3 +8,5 @@ Generates an RRT animation that navigates from a start point to an end point thr
 2. Run `python3 main.py`
 
 ## Demo
+
+  https://github.com/user-attachments/assets/6f805784-11bd-41e4-b7e4-7886fe9316d3
